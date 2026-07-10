@@ -48,6 +48,12 @@ st.markdown("""
 #MainMenu, footer, [data-testid="stToolbar"] {visibility: hidden;}
 .block-container {padding-top: 1.2rem; max-width: 1200px;}
 
+/* Brand logo pinned to the top-left, inside Streamlit's fixed header strip */
+.brandbar {position: fixed; top: 8px; left: 20px; z-index: 999999;}
+.brandbar img {height: 44px; width: auto; max-width: none; display: block;}
+.brandbar a {display: block; line-height: 0;}
+.brandbar .brandtext {color: #fff; font-weight: 800; font-size: 1.05rem;}
+
 a.qlink {color: inherit; text-decoration: none;}
 a.qlink:hover {color: #00ff85;}
 a.back {color: #8d88a3; text-decoration: none; font-size: .85rem;}
@@ -59,8 +65,6 @@ a.back:hover {color: #00ff85;}
   padding: 26px 30px 22px; margin-bottom: 6px;
 }
 .hero h1 {margin: 0; font-size: 1.9rem; letter-spacing: -.02em; color: #fff;}
-.hero img.applogo {height: 116px; display: block; margin: 2px 0 10px -6px; max-width: 100%;
-  object-fit: contain; object-position: left;}
 .hero .sub {color: #b9b3cf; font-size: .92rem; margin-top: 4px;}
 .hero .sub b {color: #00ff85; font-weight: 600;}
 .hero.compact {padding: 20px 26px; display: flex; align-items: center; gap: 18px;}
@@ -526,6 +530,15 @@ def player_page(pid: int) -> None:
                 unsafe_allow_html=True)
 
 
+# ================================================================ brand bar
+_logo = logo_uri()
+_brand = (f'<img src="{_logo}" alt="Premier League 26/27 Predictor"/>' if _logo
+          else '<span class="brandtext">⚽ PL 26/27 Predictor</span>')
+st.markdown(
+    f'<div class="brandbar"><a href="./" target="_self">{_brand}</a></div>',
+    unsafe_allow_html=True,
+)
+
 # ================================================================ router
 qp = st.query_params
 if "club" in qp:
@@ -546,13 +559,9 @@ boot = scorers.iloc[0]
 playmaker = assists.iloc[0]
 releg = sim_table.sort_values("p_relegation", ascending=False).iloc[0]
 
-_logo = logo_uri()
-_title_html = (f'<img class="applogo" src="{_logo}" alt="Premier League 26/27 Predictor"/>'
-               if _logo else "<h1>⚽ Premier League 26/27 Predictor</h1>")
-
 st.markdown(f"""
 <div class="hero">
-  {_title_html}
+  <h1>Season 2026/27 · every match, the table &amp; the Golden Boot — predicted</h1>
   <div class="sub">Dixon-Coles + LightGBM hybrid · <b>10,000</b> Monte Carlo season
   simulations · blend <b>{metrics['weight_dc']:.0%}</b> statistical /
   <b>{1 - metrics['weight_dc']:.0%}</b> ML · kicks off <b>21 Aug 2026</b> ·
