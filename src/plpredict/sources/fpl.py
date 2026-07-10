@@ -72,6 +72,20 @@ def fetch_fixtures(teams: pd.DataFrame | None = None) -> pd.DataFrame:
     return fixtures
 
 
+def fetch_player_history(player_id: int) -> pd.DataFrame:
+    """Per-gameweek log for one player (current FPL season): minutes, goals,
+    assists, opponent. Powers the rotation view on player pages."""
+    data = _get(f"element-summary/{player_id}/")
+    hist = pd.DataFrame(data.get("history", []))
+    if hist.empty:
+        return hist
+    keep = ["round", "kickoff_time", "opponent_team", "was_home",
+            "minutes", "goals_scored", "assists", "total_points"]
+    hist = hist[[c for c in keep if c in hist.columns]]
+    hist["kickoff_time"] = pd.to_datetime(hist["kickoff_time"])
+    return hist
+
+
 def load_players() -> pd.DataFrame:
     if not PLAYERS_PARQUET.exists():
         fetch_bootstrap()

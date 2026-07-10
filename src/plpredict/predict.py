@@ -42,6 +42,7 @@ def predict_remaining(
     Returns (predictions frame, {fixture_index: rescaled score matrix}).
     """
     model = dc.fit(matches)
+    model.save()
     booster = ml_model.load_model()
     weight_dc = ensemble.load_blend()["weight_dc"]
     state = final_state(matches)
