@@ -605,8 +605,60 @@ with tab_table:
 
 with tab_matches:
     gws = sorted(int(g) for g in preds["gameweek"].dropna().unique())
-    gw = st.select_slider("Gameweek", options=gws, value=gws[0])
-    sub = preds[preds["gameweek"] == gw].sort_values("kickoff_time")
+    all_teams = sorted(set(preds["home"]) | set(preds["away"]))
+
+    fc1, fc2, fc3 = st.columns([5, 3, 2])
+    teams_sel = fc1.multiselect("Teams", all_teams, placeholder="All teams")
+    result_opts = (["All results", "Win", "Draw", "Loss"] if teams_sel
+                   else ["All results", "Home win", "Draw", "Away win"])
+    result = fc2.selectbox(
+        "Predicted result" + (" (for selected teams)" if teams_sel else ""),
+        result_opts,
+    )
+    gw_pick = fc3.selectbox(
+        "Gameweek", ["All"] + gws, index=0 if (teams_sel or result != "All results") else 1
+    )
+
+    sub = preds.copy()
+    # Predicted result = the most likely of the three outcomes. Draws are
+    # almost never the argmax, so the draw filter instead surfaces genuinely
+    # draw-likely fixtures (>=25% draw probability, most draw-likely first).
+    DRAWISH = 0.25
+    sub["outcome"] = sub[["p_home", "p_draw", "p_away"]].to_numpy().argmax(axis=1)
+    if teams_sel:
+        sel = set(teams_sel)
+        sub = sub[sub["home"].isin(sel) | sub["away"].isin(sel)]
+        if result == "Win":
+            sub = sub[(sub["home"].isin(sel) & (sub["outcome"] == 0))
+                      | (sub["away"].isin(sel) & (sub["outcome"] == 2))]
+        elif result == "Loss":
+            sub = sub[(sub["home"].isin(sel) & (sub["outcome"] == 2))
+                      | (sub["away"].isin(sel) & (sub["outcome"] == 0))]
+        elif result == "Draw":
+            sub = sub[sub["p_draw"] >= DRAWISH]
+    else:
+        if result == "Home win":
+            sub = sub[sub["outcome"] == 0]
+        elif result == "Away win":
+            sub = sub[sub["outcome"] == 2]
+        elif result == "Draw":
+            sub = sub[sub["p_draw"] >= DRAWISH]
+    if gw_pick != "All":
+        sub = sub[sub["gameweek"] == gw_pick]
+    sub = (sub.sort_values("p_draw", ascending=False) if result == "Draw"
+           else sub.sort_values("kickoff_time"))
+
+    MAX_CARDS = 60
+    total = len(sub)
+    truncated = total > MAX_CARDS
+    if truncated:
+        sub = sub.head(MAX_CARDS)
+    st.caption(
+        f"Showing {'first ' if truncated else ''}{len(sub)} of {total} matching fixtures"
+        + (" — narrow the filters or pick a gameweek to see the rest" if truncated else "")
+        + (" · draw filter = fixtures with a ≥25% draw chance, most draw-likely first"
+           if result == "Draw" else " · predicted result = most likely outcome")
+    )
 
     st.markdown(
         f'<div class="legend" style="margin-top:8px">'
@@ -621,7 +673,7 @@ with tab_matches:
         when = pd.Timestamp(r.kickoff_time).strftime("%a %d %b · %H:%M")
         cards.append(f"""
 <div class="mcard">
-  <div class="when">{when}</div>
+  <div class="when">GW{int(r.gameweek)} · {when}</div>
   <div class="mrow">
     <div class="mteam"><img src="{badge(r.home)}"/>{club_link(r.home, short(r.home))}</div>
     <div class="mscore">{r.likely_score.replace('-', ' – ')}</div>
