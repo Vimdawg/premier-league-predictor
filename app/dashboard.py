@@ -11,7 +11,9 @@ minutes-per-gameweek rotation chart.
 
 from __future__ import annotations
 
+import base64
 import json
+from pathlib import Path
 from urllib.parse import quote
 
 import pandas as pd
@@ -57,6 +59,8 @@ a.back:hover {color: #00ff85;}
   padding: 26px 30px 22px; margin-bottom: 6px;
 }
 .hero h1 {margin: 0; font-size: 1.9rem; letter-spacing: -.02em; color: #fff;}
+.hero img.applogo {height: 116px; display: block; margin: 2px 0 10px -6px; max-width: 100%;
+  object-fit: contain; object-position: left;}
 .hero .sub {color: #b9b3cf; font-size: .92rem; margin-top: 4px;}
 .hero .sub b {color: #00ff85; font-weight: 600;}
 .hero.compact {padding: 20px 26px; display: flex; align-items: center; gap: 18px;}
@@ -122,6 +126,7 @@ a.back:hover {color: #00ff85;}
   .tiles {grid-template-columns: repeat(2, 1fr);}
 }
 
+.twrap {overflow-x: auto;}
 table.ltable {width: 100%; border-collapse: collapse; font-size: .9rem;}
 table.ltable th {text-align: left; font-size: .7rem; text-transform: uppercase;
   letter-spacing: .07em; color: #8d88a3; font-weight: 600; padding: 6px 8px;
@@ -150,6 +155,18 @@ tr.zone-rl td {background: rgba(217,89,38,.08);}
 .muted {color: #8d88a3; font-size: .8rem;}
 </style>
 """, unsafe_allow_html=True)
+
+
+ASSETS_DIR = Path(__file__).resolve().parent / "assets"
+
+
+@st.cache_data
+def logo_uri() -> str:
+    """The main logo (white-on-transparent) as a data URI, '' if missing."""
+    path = ASSETS_DIR / "logo_white.png"
+    if not path.exists():
+        return ""
+    return "data:image/png;base64," + base64.b64encode(path.read_bytes()).decode()
 
 
 # ---------------------------------------------------------------- data
@@ -529,9 +546,13 @@ boot = scorers.iloc[0]
 playmaker = assists.iloc[0]
 releg = sim_table.sort_values("p_relegation", ascending=False).iloc[0]
 
+_logo = logo_uri()
+_title_html = (f'<img class="applogo" src="{_logo}" alt="Premier League 26/27 Predictor"/>'
+               if _logo else "<h1>⚽ Premier League 26/27 Predictor</h1>")
+
 st.markdown(f"""
 <div class="hero">
-  <h1>⚽ Premier League 26/27 Predictor</h1>
+  {_title_html}
   <div class="sub">Dixon-Coles + LightGBM hybrid · <b>10,000</b> Monte Carlo season
   simulations · blend <b>{metrics['weight_dc']:.0%}</b> statistical /
   <b>{1 - metrics['weight_dc']:.0%}</b> ML · kicks off <b>21 Aug 2026</b> ·
@@ -579,9 +600,9 @@ with tab_table:
                 f'<td>{pbar(r.p_relegation, C_AWAY)}</td></tr>'
             )
         st.markdown(
-            '<table class="ltable"><thead><tr><th>#</th><th></th><th>Team</th>'
+            '<div class="twrap"><table class="ltable"><thead><tr><th>#</th><th></th><th>Team</th>'
             '<th class="num">xPts</th><th>Title</th><th>Top 4</th><th>Drop</th></tr></thead>'
-            "<tbody>" + "".join(trs) + "</tbody></table>",
+            "<tbody>" + "".join(trs) + "</tbody></table></div>",
             unsafe_allow_html=True,
         )
         st.markdown(
