@@ -119,13 +119,15 @@ a:focus-visible, button:focus-visible, [role="tab"]:focus-visible, input:focus-v
 .brandbar a {display: block; line-height: 0;}
 .brandbar .brandtext {color: #fff; font-weight: 800; font-size: 1.05rem;}
 
-/* Site-wide search */
-.st-key-sitesearch_box {max-width: 620px;}
+/* Site-wide search: pinned top-right in the header strip, opposite the logo */
+.st-key-sitesearch_box {position: fixed; top: 8px; right: 20px; width: 340px;
+  z-index: 999999;}
 .st-key-sitesearch_box [data-baseweb="select"] > div {
-  background: var(--surface); border-color: var(--border);
-  border-radius: var(--r-md); transition: border-color var(--speed) var(--ease);
+  background: var(--elevated); border-color: var(--border);
+  border-radius: 999px; transition: border-color var(--speed) var(--ease);
 }
 .st-key-sitesearch_box [data-baseweb="select"] > div:hover {border-color: var(--border-strong);}
+.st-key-sitesearch_box input {font-size: .88rem !important;}
 .hrow {display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 2px 0 8px;}
 .hlab {color: var(--text-3); font-size: .78rem; margin-right: 2px;
   text-transform: uppercase; letter-spacing: .07em;}
@@ -254,6 +256,8 @@ a.back:hover {color: var(--accent);}
   .block-container {padding-left: .9rem; padding-right: .9rem;}
   .brandbar {left: 12px; top: 10px;}
   .brandbar img {height: 34px;}
+  .st-key-sitesearch_box {top: 8px; right: 12px; width: calc(100vw - 148px);
+    max-width: 340px;}
   .hero {padding: 18px 16px 16px; border-radius: 14px;}
   .hero h1 {font-size: 1.45rem; line-height: 1.15;}
   .hero .sub {font-size: .84rem; margin-top: 8px;}
@@ -754,28 +758,29 @@ with st.container(key="sitesearch_box"):
         index=None,
         key="sitesearch",
         on_change=_on_search,
-        placeholder="🔍  Search any club or player — just start typing…",
+        placeholder="🔍  Search any club or player…",
         label_visibility="collapsed",
     )
-    _hist = _load_history()
-    if _hist:
-        pills = []
-        for h in _hist:
-            t = h.get("target", {})
-            if "club" in t:
-                href = club_href(t["club"])
-            elif "player" in t:
-                href = player_href(int(t["player"]))
-            else:
-                continue
-            pills.append(
-                f'<a class="hpill" href="{href}" target="_self">'
-                f'{h["label"].split(" — ")[0]}</a>'
-            )
-        st.markdown(
-            '<div class="hrow"><span class="hlab">Recent</span>' + "".join(pills) + "</div>",
-            unsafe_allow_html=True,
+
+_hist = _load_history()
+if _hist:
+    pills = []
+    for h in _hist:
+        t = h.get("target", {})
+        if "club" in t:
+            href = club_href(t["club"])
+        elif "player" in t:
+            href = player_href(int(t["player"]))
+        else:
+            continue
+        pills.append(
+            f'<a class="hpill" href="{href}" target="_self">'
+            f'{h["label"].split(" — ")[0]}</a>'
         )
+    st.markdown(
+        '<div class="hrow"><span class="hlab">Recent</span>' + "".join(pills) + "</div>",
+        unsafe_allow_html=True,
+    )
 
 # ================================================================ router
 qp = st.query_params
