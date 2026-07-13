@@ -33,8 +33,8 @@ from plpredict.sources.fpl import PLAYERS_PARQUET, TEAMS_PARQUET
 st.set_page_config(page_title="PL 26/27 Predictor", page_icon="⚽", layout="wide")
 
 # ---------------------------------------------------------------- palette
-SURFACE = "#191427"
-C_HOME, C_DRAW, C_AWAY = "#3987e5", "#575170", "#d95926"
+SURFACE = "#141021"
+C_HOME, C_DRAW, C_AWAY = "#4a94ea", "#575170", "#e0713d"
 ACCENT = "#00ff85"
 SEQ_BLUE = [[0.0, SURFACE], [0.25, "#14315e"], [0.55, "#1c5cab"],
             [0.8, "#3987e5"], [1.0, "#8fc0f2"]]
@@ -46,109 +46,195 @@ STATUS_TEXT = {"a": "Available", "d": "Doubtful", "i": "Injured",
 
 st.markdown("""
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Source+Sans+3:wght@300;400;500;600;700&display=swap');
+
+/* ---- design tokens (ui-ux-pro-max: layered dark, no pure black) ---- */
+:root {
+  --bg: #0a0714;
+  --surface: #141021;
+  --elevated: #1c1630;
+  --border: rgba(255,255,255,.08);
+  --border-strong: rgba(255,255,255,.16);
+  --text: #f2f0f7;
+  --text-2: #b9b3cf;
+  --text-3: #8d88a3;
+  --accent: #00ff85;
+  --home: #4a94ea;
+  --away: #e0713d;
+  --r-lg: 16px; --r-md: 12px;
+  --speed: 200ms;
+  --ease: cubic-bezier(.16, 1, .3, 1);
+  --shadow-hover: 0 10px 28px rgba(0,0,0,.45);
+}
+
+/* Body/display fonts; restore Streamlit's icon font afterwards */
+[data-testid="stAppViewContainer"], [data-testid="stAppViewContainer"] * {
+  font-family: 'Source Sans 3', system-ui, -apple-system, sans-serif;
+}
+[data-testid="stIconMaterial"] {font-family: 'Material Symbols Rounded' !important;}
+
 #MainMenu, footer, [data-testid="stToolbar"] {visibility: hidden;}
-.block-container {padding-top: 1.2rem; max-width: 1200px;}
+.block-container {padding-top: 1.1rem; max-width: 1200px;}
+
+::selection {background: rgba(0,255,133,.25);}
+a, [role="tab"], [data-baseweb="select"] {cursor: pointer;}
+a:focus-visible, button:focus-visible, [role="tab"]:focus-visible, input:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {transition-duration: .01ms !important; animation: none !important;}
+}
 
 /* Brand logo pinned to the top-left, inside Streamlit's fixed header strip */
 .brandbar {position: fixed; top: 8px; left: 20px; z-index: 999999;}
-.brandbar img {height: 44px; width: auto; max-width: none; display: block;}
+.brandbar img {height: 44px; width: auto; max-width: none; display: block;
+  transition: opacity var(--speed) var(--ease);}
+.brandbar a:hover img {opacity: .8;}
 .brandbar a {display: block; line-height: 0;}
 .brandbar .brandtext {color: #fff; font-weight: 800; font-size: 1.05rem;}
 
 /* Site-wide search */
 .st-key-sitesearch_box {max-width: 620px;}
-.hrow {display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 2px 0 8px;}
-.hlab {color: #8d88a3; font-size: .78rem; margin-right: 2px;}
-a.hpill {background: #241d3a; border: 1px solid rgba(255,255,255,.09); color: #b9b3cf;
-  padding: 2px 11px; border-radius: 999px; font-size: .78rem; text-decoration: none;
-  white-space: nowrap;}
-a.hpill:hover {border-color: #00ff85; color: #00ff85;}
-
-a.qlink {color: inherit; text-decoration: none;}
-a.qlink:hover {color: #00ff85;}
-a.back {color: #8d88a3; text-decoration: none; font-size: .85rem;}
-a.back:hover {color: #00ff85;}
-
-.hero {
-  background: linear-gradient(120deg, #2d0f45 0%, #16102b 55%, #0e2231 100%);
-  border: 1px solid rgba(255,255,255,.07); border-radius: 18px;
-  padding: 26px 30px 22px; margin-bottom: 6px;
+.st-key-sitesearch_box [data-baseweb="select"] > div {
+  background: var(--surface); border-color: var(--border);
+  border-radius: var(--r-md); transition: border-color var(--speed) var(--ease);
 }
-.hero h1 {margin: 0; font-size: 1.9rem; letter-spacing: -.02em; color: #fff;}
-.hero .sub {color: #b9b3cf; font-size: .92rem; margin-top: 4px;}
-.hero .sub b {color: #00ff85; font-weight: 600;}
-.hero.compact {padding: 20px 26px; display: flex; align-items: center; gap: 18px;}
+.st-key-sitesearch_box [data-baseweb="select"] > div:hover {border-color: var(--border-strong);}
+.hrow {display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 2px 0 8px;}
+.hlab {color: var(--text-3); font-size: .78rem; margin-right: 2px;
+  text-transform: uppercase; letter-spacing: .07em;}
+a.hpill {background: var(--elevated); border: 1px solid var(--border); color: var(--text-2);
+  padding: 2px 11px; border-radius: 999px; font-size: .78rem; text-decoration: none;
+  white-space: nowrap; transition: color var(--speed), border-color var(--speed);}
+a.hpill:hover {border-color: var(--accent); color: var(--accent);}
+
+a.qlink {color: inherit; text-decoration: none; transition: color 150ms var(--ease);}
+a.qlink:hover {color: var(--accent);}
+a.back {color: var(--text-3); text-decoration: none; font-size: .85rem;
+  transition: color 150ms var(--ease);}
+a.back:hover {color: var(--accent);}
+
+/* Streamlit tabs: quiet uppercase nav with an accent underline */
+.stTabs [role="tablist"] {gap: 26px; border-bottom: 1px solid var(--border);}
+.stTabs [role="tab"] {padding: 6px 2px; text-transform: uppercase;
+  letter-spacing: .09em; font-size: .8rem; font-weight: 600; color: var(--text-3);
+  transition: color var(--speed) var(--ease); background: transparent;}
+.stTabs [role="tab"]:hover {color: var(--text);}
+.stTabs [role="tab"][aria-selected="true"] {color: var(--accent) !important;}
+.stTabs [role="tab"] p {font-size: .8rem !important;}
+
+/* Hero: layered surface with ambient light, display type for the headline */
+.hero {
+  position: relative; overflow: hidden;
+  background:
+    radial-gradient(640px 320px at 6% -25%, rgba(102, 36, 166, .5), transparent 62%),
+    radial-gradient(560px 300px at 88% -30%, rgba(20, 90, 160, .38), transparent 62%),
+    radial-gradient(480px 240px at 50% 125%, rgba(0, 255, 133, .09), transparent 60%),
+    var(--surface);
+  border: 1px solid var(--border); border-radius: var(--r-lg);
+  padding: 30px 34px 26px; margin-bottom: 6px;
+}
+.hero h1, .hero h1 span {font-family: 'Bebas Neue', 'Source Sans 3', sans-serif;}
+.hero h1 {margin: 0; font-size: 2.7rem; font-weight: 400; letter-spacing: .015em;
+  line-height: .98; color: #fff; text-wrap: balance;}
+.hero .sub {color: var(--text-2); font-size: .95rem; margin-top: 10px; max-width: 68ch;}
+.hero .sub b {color: var(--accent); font-weight: 600;}
+.hero.compact {padding: 22px 28px; display: flex; align-items: center; gap: 18px;}
+.hero.compact h1 {font-size: 2.3rem;}
 .hero.compact img.crest {height: 64px;}
 .hero.compact img.face {height: 76px; border-radius: 12px;}
-.hero.compact .meta .sub {margin-top: 2px;}
+.hero.compact .meta .sub {margin-top: 4px;}
 
-.tiles {display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 18px;}
+/* Stat tiles */
+.tiles {display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 20px;}
 .tiles.solo {margin-top: 12px;}
-.tile {background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.07);
-  border-radius: 14px; padding: 12px 16px;}
-.tile .k {font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: #8d88a3;}
-.tile .v {font-size: 1.12rem; font-weight: 700; color: #fff; margin-top: 3px;
+.tile {background: rgba(255,255,255,.04); border: 1px solid var(--border);
+  border-radius: 14px; padding: 13px 16px;
+  transition: transform var(--speed) var(--ease), border-color var(--speed) var(--ease),
+    background var(--speed) var(--ease);}
+.tile:hover {transform: translateY(-2px); border-color: var(--border-strong);
+  background: rgba(255,255,255,.06);}
+.tile .k {font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; color: var(--text-3);}
+.tile .v {font-size: 1.14rem; font-weight: 700; color: #fff; margin-top: 4px;
   display: flex; align-items: center; gap: 8px;}
 .tile .v img {height: 22px;}
-.tile .p {font-size: .8rem; color: #00ff85; margin-top: 1px;}
+.tile .p {font-size: .8rem; color: var(--accent); margin-top: 2px;
+  font-variant-numeric: tabular-nums;}
 
+/* Match prediction cards */
 .mgrid {display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
   gap: 12px; margin-top: 10px;}
-.mcard {background: #191427; border: 1px solid rgba(255,255,255,.07);
-  border-radius: 14px; padding: 14px 16px 12px;}
-.mcard .when {font-size: .72rem; color: #8d88a3; text-transform: uppercase;
-  letter-spacing: .06em; margin-bottom: 10px;}
+.mcard {background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 14px 16px 12px;
+  transition: transform var(--speed) var(--ease), border-color var(--speed) var(--ease),
+    box-shadow var(--speed) var(--ease);}
+.mcard:hover {transform: translateY(-2px); border-color: var(--border-strong);
+  box-shadow: var(--shadow-hover);}
+.mcard .when {font-size: .72rem; color: var(--text-3); text-transform: uppercase;
+  letter-spacing: .07em; margin-bottom: 10px;}
 .mrow {display: flex; align-items: center; justify-content: space-between; gap: 8px;}
 .mteam {display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;
-  font-weight: 600; font-size: .95rem; color: #f5f4fa;}
+  font-weight: 600; font-size: .95rem; color: var(--text);}
 .mteam.right {justify-content: flex-end;}
 .mteam img {height: 26px; flex-shrink: 0;}
-.mscore {font-size: 1.05rem; font-weight: 800; color: #fff; background: rgba(255,255,255,.07);
-  border-radius: 8px; padding: 3px 10px; white-space: nowrap;}
+.mscore {font-size: 1.1rem; font-weight: 700; color: #fff; background: var(--elevated);
+  border: 1px solid var(--border); border-radius: 8px; padding: 3px 10px;
+  white-space: nowrap; font-family: 'Bebas Neue', sans-serif; letter-spacing: .06em;}
 .pbar {display: flex; height: 8px; border-radius: 4px; overflow: hidden;
   margin-top: 12px; gap: 2px;}
 .pbar span {height: 100%;}
 .plabels {display: flex; justify-content: space-between; font-size: .74rem;
-  color: #b9b3cf; margin-top: 5px;}
+  color: var(--text-2); margin-top: 5px; font-variant-numeric: tabular-nums;}
 .plabels .h {color: #7fb2ee;} .plabels .a {color: #e89a72;}
-.xg {font-size: .72rem; color: #8d88a3; margin-top: 6px;}
+.xg {font-size: .72rem; color: var(--text-3); margin-top: 6px;
+  font-variant-numeric: tabular-nums;}
 
-.prow {display: flex; align-items: center; gap: 12px; background: #191427;
-  border: 1px solid rgba(255,255,255,.07); border-radius: 12px;
-  padding: 8px 14px 8px 10px; margin-bottom: 8px;}
-.prow .rank {width: 20px; text-align: center; color: #8d88a3; font-weight: 700;}
+/* Player leaderboard rows */
+.prow {display: flex; align-items: center; gap: 12px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--r-md);
+  padding: 8px 14px 8px 10px; margin-bottom: 8px;
+  transition: transform var(--speed) var(--ease), border-color var(--speed) var(--ease);}
+.prow:hover {transform: translateX(2px); border-color: var(--border-strong);}
+.prow .rank {width: 20px; text-align: center; color: var(--text-3); font-weight: 700;
+  font-variant-numeric: tabular-nums;}
 .prow img {height: 44px; width: 35px; object-fit: cover; border-radius: 8px;
   background: rgba(255,255,255,.05);}
 .prow .who {flex: 1; min-width: 0;}
-.prow .who .nm {font-weight: 650; font-size: .93rem; color: #f5f4fa;
+.prow .who .nm {font-weight: 650; font-size: .93rem; color: var(--text);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
-.prow .who .tm {font-size: .74rem; color: #8d88a3;
+.prow .who .tm {font-size: .74rem; color: var(--text-3);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
 .prow .stat {text-align: right;}
-.prow .stat .xv {font-weight: 750; font-size: 1.0rem; color: #fff;}
-.prow .stat .pt {font-size: .72rem; color: #00ff85;}
+.prow .stat .xv {font-weight: 750; font-size: 1.0rem; color: #fff;
+  font-variant-numeric: tabular-nums;}
+.prow .stat .pt {font-size: .72rem; color: var(--accent);
+  font-variant-numeric: tabular-nums;}
 .prow .track {height: 5px; border-radius: 3px; background: rgba(255,255,255,.06);
   width: 90px;}
-.prow .track i {display: block; height: 100%; border-radius: 3px; background: #3987e5;}
+.prow .track i {display: block; height: 100%; border-radius: 3px; background: var(--home);}
 
-.legend {display: flex; gap: 18px; font-size: .8rem; color: #b9b3cf; margin: 6px 0 2px;}
+.legend {display: flex; gap: 18px; font-size: .8rem; color: var(--text-2); margin: 6px 0 2px;}
 .legend i {display: inline-block; width: 10px; height: 10px; border-radius: 3px;
   margin-right: 6px;}
 
 @media (max-width: 1150px) {
   .prow .track {display: none;}
   .tiles {grid-template-columns: repeat(2, 1fr);}
+  .hero h1 {font-size: 2.2rem;}
 }
 
+/* Data tables: tabular numerals + row hover highlight */
 .twrap {overflow-x: auto;}
-table.ltable {width: 100%; border-collapse: collapse; font-size: .9rem;}
+table.ltable {width: 100%; border-collapse: collapse; font-size: .9rem;
+  font-variant-numeric: tabular-nums;}
 table.ltable th {text-align: left; font-size: .7rem; text-transform: uppercase;
-  letter-spacing: .07em; color: #8d88a3; font-weight: 600; padding: 6px 8px;
-  border-bottom: 1px solid rgba(255,255,255,.1);}
+  letter-spacing: .08em; color: var(--text-3); font-weight: 600; padding: 6px 8px;
+  border-bottom: 1px solid var(--border-strong);}
 table.ltable th.num, table.ltable td.num {text-align: right;}
-table.ltable td {padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,.05);
-  color: #f5f4fa; white-space: nowrap;}
-table.ltable td.pos {color: #8d88a3; font-weight: 700; width: 26px;}
+table.ltable td {padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,.05);
+  color: var(--text); white-space: nowrap; transition: background 150ms var(--ease);}
+table.ltable tbody tr:hover td {background: rgba(255,255,255,.045);}
+table.ltable td.pos {color: var(--text-3); font-weight: 700; width: 26px;}
 table.ltable img {height: 22px; width: 22px; min-width: 22px; object-fit: contain;
   vertical-align: middle;}
 table.ltable img.face {height: 30px; width: 24px; border-radius: 5px; object-fit: cover;}
@@ -156,7 +242,7 @@ table.ltable td.tm {font-weight: 600;}
 table.ltable .pw {display: inline-block; width: 64px; height: 6px; border-radius: 3px;
   background: rgba(255,255,255,.07); vertical-align: middle; margin-right: 7px;}
 table.ltable .pw i {display: block; height: 100%; border-radius: 3px;}
-table.ltable .pv {font-size: .8rem; color: #b9b3cf;}
+table.ltable .pv {font-size: .8rem; color: var(--text-2);}
 tr.zone-cl td {background: rgba(0,255,133,.05);}
 tr.zone-eu td {background: rgba(57,135,229,.07);}
 tr.zone-rl td {background: rgba(217,89,38,.08);}
@@ -164,9 +250,9 @@ tr.zone-rl td {background: rgba(217,89,38,.08);}
 .chip {display: inline-block; min-width: 22px; text-align: center; padding: 1px 6px;
   border-radius: 6px; font-weight: 800; font-size: .74rem;}
 .chip.W {background: rgba(0,255,133,.15); color: #7dffc4;}
-.chip.D {background: rgba(255,255,255,.1); color: #b9b3cf;}
+.chip.D {background: rgba(255,255,255,.1); color: var(--text-2);}
 .chip.L {background: rgba(217,89,38,.18); color: #e89a72;}
-.muted {color: #8d88a3; font-size: .8rem;}
+.muted {color: var(--text-3); font-size: .8rem;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -294,7 +380,7 @@ def theme_fig(fig: go.Figure, height: int) -> go.Figure:
     fig.update_layout(
         height=height, margin=dict(l=0, r=0, t=10, b=0),
         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="system-ui, sans-serif", color="#b9b3cf", size=13),
+        font=dict(family="Source Sans 3, system-ui, sans-serif", color="#b9b3cf", size=13),
     )
     fig.update_xaxes(gridcolor="rgba(255,255,255,.06)", zerolinecolor="rgba(255,255,255,.12)")
     fig.update_yaxes(gridcolor="rgba(255,255,255,.06)", zerolinecolor="rgba(255,255,255,.12)")
@@ -682,7 +768,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 tab_table, tab_matches, tab_players, tab_model = st.tabs(
-    ["📋 Final table", "🗓️ Match predictions", "🥇 Golden Boot & assists", "📈 Model"]
+    ["Final table", "Match predictions", "Golden Boot & assists", "Model"]
 )
 
 with tab_table:
