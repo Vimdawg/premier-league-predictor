@@ -19,6 +19,7 @@ from urllib.parse import quote
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+import streamlit.components.v1 as components
 
 from plpredict import players as players_mod
 from plpredict import predict, simulate
@@ -31,6 +32,31 @@ from plpredict.sources.football_data import MATCHES_PARQUET
 from plpredict.sources.fpl import PLAYERS_PARQUET, TEAMS_PARQUET
 
 st.set_page_config(page_title="PL 26/27 Predictor", page_icon="⚽", layout="wide")
+
+
+def inject_pwa() -> None:
+    """Make the site installable as a home-screen app. Streamlit can't edit
+    index.html, so the PWA tags (manifest, iOS icons, full-screen meta) are
+    added to the parent document from this zero-height component iframe."""
+    components.html("""
+<script>
+const head = window.parent.document.head;
+const add = (tag, attrs) => {
+  if (head.querySelector(`[data-pwa="${attrs['data-pwa']}"]`)) return;
+  const el = window.parent.document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+  head.appendChild(el);
+};
+add('link', {rel: 'manifest', href: './app/static/manifest.json', 'data-pwa': 'manifest'});
+add('link', {rel: 'apple-touch-icon', href: './app/static/apple-touch-icon.png', 'data-pwa': 'icon'});
+add('meta', {name: 'apple-mobile-web-app-capable', content: 'yes', 'data-pwa': 'capable'});
+add('meta', {name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent', 'data-pwa': 'bar'});
+add('meta', {name: 'apple-mobile-web-app-title', content: 'PL 26/27', 'data-pwa': 'title'});
+add('meta', {name: 'theme-color', content: '#0a0714', 'data-pwa': 'theme'});
+</script>""", height=0)
+
+
+inject_pwa()
 
 # ---------------------------------------------------------------- palette
 SURFACE = "#141021"
