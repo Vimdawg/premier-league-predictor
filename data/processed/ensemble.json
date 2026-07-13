@@ -1,0 +1,10 @@
+{
+ "weight_dc": 0.76,
+ "n_val": 760,
+ "logloss_dc": 1.0182387464464304,
+ "logloss_ml": 1.034887664329128,
+ "logloss_blend": 1.0164785340514362,
+ "logloss_uniform": 1.0986122886681098,
+ "logloss_bookmaker": 0.9946525535155576,
+ "logloss_blend_on_odds_subset": 1.0164785340514362
+}

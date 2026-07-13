@@ -1,0 +1,3 @@
+# Streamlit Community Cloud install file: installs the plpredict package
+# (and its dependencies from pyproject.toml) so app/dashboard.py can import it.
+-e .

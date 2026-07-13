@@ -11,7 +11,9 @@ wheels/
 
 # Secrets and local data
 .env
-data/
+data/raw/
+data/cache.sqlite
+data/processed/search_history.json
 .pytest_cache/
 .streamlit/secrets.toml
 

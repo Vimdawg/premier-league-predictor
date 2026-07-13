@@ -220,7 +220,35 @@ a.back:hover {color: var(--accent);}
 @media (max-width: 1150px) {
   .prow .track {display: none;}
   .tiles {grid-template-columns: repeat(2, 1fr);}
-  .hero h1 {font-size: 2.2rem;}
+  .hero h1 {font-size: 2rem;}
+}
+
+/* Phones */
+@media (max-width: 640px) {
+  .block-container {padding-left: .9rem; padding-right: .9rem;}
+  .brandbar {left: 12px; top: 10px;}
+  .brandbar img {height: 34px;}
+  .hero {padding: 18px 16px 16px; border-radius: 14px;}
+  .hero h1 {font-size: 1.45rem; line-height: 1.15;}
+  .hero .sub {font-size: .84rem; margin-top: 8px;}
+  .tiles {grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 14px;}
+  .tile {padding: 10px 12px;}
+  .tile .k {font-size: .62rem;}
+  .tile .v {font-size: .95rem;}
+  .tile .p {font-size: .74rem;}
+  .hero.compact {padding: 14px 14px; gap: 12px;}
+  .hero.compact h1 {font-size: 1.35rem;}
+  .hero.compact img.crest {height: 46px;}
+  .hero.compact img.face {height: 56px;}
+  .hero.compact .sub {font-size: .8rem;}
+  .mgrid {grid-template-columns: 1fr; gap: 10px;}
+  .stTabs [role="tablist"] {gap: 14px; overflow-x: auto; scrollbar-width: none;}
+  .stTabs [role="tab"] {white-space: nowrap;}
+  .prow {gap: 9px; padding: 7px 10px 7px 8px;}
+  .prow img {height: 38px; width: 30px;}
+  .legend {flex-wrap: wrap; gap: 10px; row-gap: 4px;}
+  table.ltable {font-size: .82rem;}
+  table.ltable td, table.ltable th {padding: 5px 6px;}
 }
 
 /* Data tables: tabular numerals + row hover highlight */
@@ -466,7 +494,7 @@ def club_page(team: str) -> None:
                     f'<td class="num">{gf}–{ga}</td>'
                     f'<td class="muted">{comp}</td></tr>'
                 )
-            st.markdown('<table class="ltable"><tbody>' + "".join(trs) + "</tbody></table>",
+            st.markdown('<div class="twrap"><table class="ltable"><tbody>' + "".join(trs) + "</tbody></table></div>",
                         unsafe_allow_html=True)
 
     with right:
@@ -486,7 +514,7 @@ def club_page(team: str) -> None:
                 f'<span class="pv">{p_win:.0%} win</span></td>'
                 f'<td class="num muted">{m.likely_score}</td></tr>'
             )
-        st.markdown('<table class="ltable"><tbody>' + "".join(trs) + "</tbody></table>",
+        st.markdown('<div class="twrap"><table class="ltable"><tbody>' + "".join(trs) + "</tbody></table></div>",
                     unsafe_allow_html=True)
 
     st.subheader("Squad & rotation")
@@ -519,7 +547,7 @@ def club_page(team: str) -> None:
     st.markdown(
         '<div class="muted" style="margin-bottom:6px">Last completed season · minutes share '
         'is the rotation signal: starters sit high, rotation options mid, fringe low.</div>'
-        '<table class="ltable"><tbody>' + "".join(trs) + "</tbody></table>",
+        '<div class="twrap"><table class="ltable"><tbody>' + "".join(trs) + "</tbody></table></div>",
         unsafe_allow_html=True,
     )
 
@@ -622,7 +650,7 @@ def player_page(pid: int) -> None:
             f'<td class="num">{int(h.assists)} A</td>'
             f'<td class="num muted">{int(h.total_points)} pts</td></tr>'
         )
-    st.markdown('<table class="ltable"><tbody>' + "".join(trs) + "</tbody></table>",
+    st.markdown('<div class="twrap"><table class="ltable"><tbody>' + "".join(trs) + "</tbody></table></div>",
                 unsafe_allow_html=True)
 
 
