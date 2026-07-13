@@ -46,7 +46,7 @@ STATUS_TEXT = {"a": "Available", "d": "Doubtful", "i": "Injured",
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Source+Sans+3:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 /* ---- design tokens (ui-ux-pro-max: layered dark, no pure black) ---- */
 :root {
@@ -69,7 +69,7 @@ st.markdown("""
 
 /* Body/display fonts; restore Streamlit's icon font afterwards */
 [data-testid="stAppViewContainer"], [data-testid="stAppViewContainer"] * {
-  font-family: 'Source Sans 3', system-ui, -apple-system, sans-serif;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 }
 [data-testid="stIconMaterial"] {font-family: 'Material Symbols Rounded' !important;}
 
@@ -134,13 +134,13 @@ a.back:hover {color: var(--accent);}
   border: 1px solid var(--border); border-radius: var(--r-lg);
   padding: 30px 34px 26px; margin-bottom: 6px;
 }
-.hero h1, .hero h1 span {font-family: 'Bebas Neue', 'Source Sans 3', sans-serif;}
-.hero h1 {margin: 0; font-size: 2.7rem; font-weight: 400; letter-spacing: .015em;
-  line-height: .98; color: #fff; text-wrap: balance;}
+.hero h1, .hero h1 span {font-weight: 800; letter-spacing: -.025em;}
+.hero h1 {margin: 0; font-size: 2.3rem; line-height: 1.08; color: #fff;
+  text-wrap: balance;}
 .hero .sub {color: var(--text-2); font-size: .95rem; margin-top: 10px; max-width: 68ch;}
 .hero .sub b {color: var(--accent); font-weight: 600;}
 .hero.compact {padding: 22px 28px; display: flex; align-items: center; gap: 18px;}
-.hero.compact h1 {font-size: 2.3rem;}
+.hero.compact h1 {font-size: 2rem;}
 .hero.compact img.crest {height: 64px;}
 .hero.compact img.face {height: 76px; border-radius: 12px;}
 .hero.compact .meta .sub {margin-top: 4px;}
@@ -177,9 +177,9 @@ a.back:hover {color: var(--accent);}
   font-weight: 600; font-size: .95rem; color: var(--text);}
 .mteam.right {justify-content: flex-end;}
 .mteam img {height: 26px; flex-shrink: 0;}
-.mscore {font-size: 1.1rem; font-weight: 700; color: #fff; background: var(--elevated);
+.mscore {font-size: 1.02rem; font-weight: 800; color: #fff; background: var(--elevated);
   border: 1px solid var(--border); border-radius: 8px; padding: 3px 10px;
-  white-space: nowrap; font-family: 'Bebas Neue', sans-serif; letter-spacing: .06em;}
+  white-space: nowrap; font-variant-numeric: tabular-nums;}
 .pbar {display: flex; height: 8px; border-radius: 4px; overflow: hidden;
   margin-top: 12px; gap: 2px;}
 .pbar span {height: 100%;}
@@ -380,7 +380,7 @@ def theme_fig(fig: go.Figure, height: int) -> go.Figure:
     fig.update_layout(
         height=height, margin=dict(l=0, r=0, t=10, b=0),
         paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Source Sans 3, system-ui, sans-serif", color="#b9b3cf", size=13),
+        font=dict(family="Plus Jakarta Sans, system-ui, sans-serif", color="#b9b3cf", size=13),
     )
     fig.update_xaxes(gridcolor="rgba(255,255,255,.06)", zerolinecolor="rgba(255,255,255,.12)")
     fig.update_yaxes(gridcolor="rgba(255,255,255,.06)", zerolinecolor="rgba(255,255,255,.12)")
