@@ -22,6 +22,7 @@ import streamlit as st
 
 from plpredict import players as players_mod
 from plpredict import predict, simulate
+from plpredict.config import PROCESSED_DIR
 from plpredict.models.dixon_coles import MODEL_PATH as DC_MODEL_PATH
 from plpredict.models.dixon_coles import DixonColesModel
 from plpredict.models.ensemble import ENSEMBLE_PATH
@@ -53,6 +54,15 @@ st.markdown("""
 .brandbar img {height: 44px; width: auto; max-width: none; display: block;}
 .brandbar a {display: block; line-height: 0;}
 .brandbar .brandtext {color: #fff; font-weight: 800; font-size: 1.05rem;}
+
+/* Site-wide search */
+.st-key-sitesearch_box {max-width: 620px;}
+.hrow {display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 2px 0 8px;}
+.hlab {color: #8d88a3; font-size: .78rem; margin-right: 2px;}
+a.hpill {background: #241d3a; border: 1px solid rgba(255,255,255,.09); color: #b9b3cf;
+  padding: 2px 11px; border-radius: 999px; font-size: .78rem; text-decoration: none;
+  white-space: nowrap;}
+a.hpill:hover {border-color: #00ff85; color: #00ff85;}
 
 a.qlink {color: inherit; text-decoration: none;}
 a.qlink:hover {color: #00ff85;}
@@ -538,6 +548,94 @@ st.markdown(
     f'<div class="brandbar"><a href="./" target="_self">{_brand}</a></div>',
     unsafe_allow_html=True,
 )
+
+# ================================================================ search
+# One search box on every page: type-ahead over all clubs and players (the
+# dropdown filters as you type, so "haal" already surfaces Haaland), plus a
+# persistent recent-searches row. History lives in data/ (gitignored).
+HISTORY_PATH = PROCESSED_DIR / "search_history.json"
+
+
+@st.cache_data(ttl=600)
+def search_index() -> tuple[list[str], dict[str, dict[str, str]]]:
+    """(ordered option labels, label -> query-param target). Clubs first,
+    then players by minutes played so regulars surface before fringe names."""
+    options: list[str] = []
+    targets: dict[str, dict[str, str]] = {}
+    for team in sim_table["team"]:
+        label = f"{team} — club"
+        options.append(label)
+        targets[label] = {"club": team}
+    if not fpl_players.empty:
+        for p in fpl_players.sort_values("minutes", ascending=False).itertuples():
+            name = f"{p.first_name} {p.second_name}".strip()
+            if p.web_name.lower() not in name.lower():
+                name += f" '{p.web_name}'"
+            label = f"{name} — {p.team} · {p.position}"
+            if label in targets:
+                label = f"{label} · #{p.id}"
+            options.append(label)
+            targets[label] = {"player": str(p.id)}
+    return options, targets
+
+
+def _load_history() -> list[dict]:
+    try:
+        return json.loads(HISTORY_PATH.read_text())
+    except Exception:
+        return []
+
+
+def _push_history(label: str, target: dict[str, str]) -> None:
+    hist = [h for h in _load_history() if h.get("label") != label]
+    hist.insert(0, {"label": label, "target": target})
+    try:
+        HISTORY_PATH.write_text(json.dumps(hist[:8]))
+    except Exception:
+        pass  # history is a nicety — never break the app over it
+
+
+def _on_search() -> None:
+    label = st.session_state.get("sitesearch")
+    if not label:
+        return
+    target = search_index()[1].get(label)
+    if target:
+        _push_history(label, target)
+        st.session_state["sitesearch"] = None
+        st.query_params.clear()
+        st.query_params.update(target)
+
+
+with st.container(key="sitesearch_box"):
+    st.selectbox(
+        "Search clubs and players",
+        search_index()[0],
+        index=None,
+        key="sitesearch",
+        on_change=_on_search,
+        placeholder="🔍  Search any club or player — just start typing…",
+        label_visibility="collapsed",
+    )
+    _hist = _load_history()
+    if _hist:
+        pills = []
+        for h in _hist:
+            t = h.get("target", {})
+            if "club" in t:
+                href = club_href(t["club"])
+            elif "player" in t:
+                href = player_href(int(t["player"]))
+            else:
+                continue
+            pills.append(
+                f'<a class="hpill" href="{href}" target="_self">'
+                f'{h["label"].split(" — ")[0]}</a>'
+            )
+        st.markdown(
+            '<div class="hrow"><span class="hlab">Recent</span>' + "".join(pills) + "</div>",
+            unsafe_allow_html=True,
+        )
 
 # ================================================================ router
 qp = st.query_params
